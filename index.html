@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Consciência Silábica</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #6ecbf5 0%, #4a6fa5 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 95%;
+            max-width: 800px;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        h1 {
+            color: #4a6fa5;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-size: 2.2rem;
+        }
+        h2 {
+            color: #2c4a76;
+            margin: 15px 0;
+        }
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .active {
+            display: block;
+        }
+        .input-group {
+            margin: 15px 0;
+        }
+        input, select {
+            padding: 14px;
+            margin: 10px 0;
+            border: 2px solid #c4d7f2;
+            border-radius: 12px;
+            width: 80%;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f9fcff;
+        }
+        input:focus, select:focus {
+            border-color: #4a6fa5;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+        button {
+            background: linear-gradient(to bottom, #4a6fa5, #3a5a80);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 17px;
+            margin: 12px 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            background: linear-gradient(to bottom, #5a7fb5, #4a6a90);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .emoji {
+            font-size: 60px;
+            margin: 20px 0;
+            animation: bounce 1.5s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-10px); }
+        }
+        .timer-container {
+            height: 16px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+            width: 100%;
+            transition: width 1s linear;
+            border-radius: 8px;
+        }
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #333;
+            font-size: 12px;
+        }
+        .feedback {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .correct {
+            background-color: #e8f5e9;
+            border-left: 5px solid #4caf50;
+        }
+        .incorrect {
+            background-color: #ffebee;
+            border-left: 5px solid #f44336;
+        }
+        .score-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4a6fa5;
+            margin: 25px 0;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .level-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            color: white;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .easy {
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+        }
+        .medium {
+            background: linear-gradient(to right, #ff9800, #ef6c00);
+        }
+        .hard {
+            background: linear-gradient(to right, #f44336, #c62828);
+        }
+        .option-btn {
+            background: linear-gradient(to bottom, #f5f5f5, #e0e0e0);
+            color: #333;
+            border: 2px solid #ddd;
+            padding: 12px 18px;
+            margin: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+            flex: 1 0 45%;
+            max-width: 250px;
+        }
+        .option-btn:hover {
+            background: linear-gradient(to bottom, #e0e0e0, #d5d5d5);
+        }
+        .option-btn.selected {
+            background: linear-gradient(to bottom, #4a6fa5, #3a5a80);
+            color: white;
+            border-color: #4a6fa5;
+            transform: scale(1.03);
+        }
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+        .input-container input {
+            width: 65%;
+            margin: 0;
+        }
+        .question-type {
+            font-size: 20px;
+            color: #4a6fa5;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .word-display {
+            font-size: 32px;
+            color: #2c4a76;
+            margin: 15px 0;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            height: 20px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+        .report-status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+        .answer-list {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .answer-list li {
+            margin: 8px 0;
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: linear-gradient(to bottom, #4a6fa5, #3a5a80);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 120px;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .stat-label {
+            font-size: 14px;
+        }
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+                padding: 15px;
+                border-radius: 15px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .input-container {
+                flex-direction: column;
+            }
+            .input-container input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .options-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .option-btn {
+                width: 100%;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Início -->
+        <div id="start-screen" class="screen active">
+            <h1><i class="fas fa-book-reader"></i> Jogo de Consciência Silábica</h1>
+            <p>Vamos brincar com as sílabas das palavras! <i class="fas fa-smile"></i></p>
+            <div class="emoji">📝 ✏️ 🎓</div>
+            
+            <div class="input-group">
+                <input type="text" id="player-name" placeholder="Digite seu nome">
+            </div>
+            
+            <div class="input-group">
+                <select id="player-age">
+                    <option value="">Selecione sua idade</option>
+                    <option value="8">8 anos</option>
+                    <option value="9">9 anos</option>
+                    <option value="10">10 anos</option>
+                    <option value="11">11 anos</option>
+                    <option value="12">12 anos</option>
+                    <option value="13">13 anos</option>
+                    <option value="14">14 anos</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <select id="school-year">
+                    <option value="">Selecione seu ano escolar</option>
+                    <option value="1">1º Ano</option>
+                    <option value="2">2º Ano</option>
+                    <option value="3">3º Ano</option>
+                    <option value="4">4º Ano</option>
+                    <option value="5">5º Ano</option>
+                    <option value="6">6º Ano</option>
+                    <option value="7">7º Ano</option>
+                    <option value="8">8º Ano</option>
+                    <option value="9">9º Ano</option>
+                </select>
+            </div>
+            
+            <button id="start-btn"><i class="fas fa-play"></i> Começar o Jogo!</button>
+        </div>
+
+        <!-- Tela do Jogo -->
+        <div id="game-screen" class="screen">
+            <h2 id="level-title">Nível Fácil</h2>
+            <div class="level-badge easy"><i class="fas fa-star"></i> Fácil</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="level-progress"></div>
+            </div>
+            
+            <div class="emoji" id="word-emoji">🐱</div>
+            <h3>Separar a palavra em sílabas:</h3>
+            <div class="word-display" id="current-word">gato</div>
+            
+            <div id="question-type" class="question-type">Digite a separação silábica:</div>
+            
+            <div class="input-container" id="input-container">
+                <input type="text" id="syllable-input" placeholder="Exemplo: ga-to">
+                <button id="check-btn"><i class="fas fa-check"></i> Verificar</button>
+            </div>
+            
+            <div class="options-container" id="options-container">
+                <!-- Opções serão geradas dinamicamente -->
+            </div>
+            
+            <div class="timer-container">
+                <div id="timer-progress" class="timer-progress"></div>
+                <div class="timer-text" id="timer-text">20s</div>
+            </div>
+            
+            <div id="feedback" class="feedback"></div>
+        </div>
+
+        <!-- Tela de Resultado -->
+        <div id="result-screen" class="screen">
+            <h1>Parabéns, <span id="player-name-result"></span>! <i class="fas fa-trophy"></i></h1>
+            <div class="score-display">Sua pontuação: <span id="score-result">0</span></div>
+            
+            <h3>Seu nível de jogo: <span id="final-level">Fácil</span></h3>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="stat-number" id="correct-count">0</div>
+                    <div class="stat-label">Acertos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="incorrect-count">0</div>
+                    <div class="stat-label">Erros</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="accuracy-rate">0%</div>
+                    <div class="stat-label">Precisão</div>
+                </div>
+            </div>
+            
+            <div id="report-status" class="report-status">
+                <i class="fas fa-spinner fa-spin"></i> Enviando relatório para o professor...
+            </div>
+            
+            <button id="restart-btn"><i class="fas fa-redo"></i> Jogar Novamente</button>
+            <button id="download-btn"><i class="fas fa-download"></i> Baixar Resultados</button>
+        </div>
+    </div>
+
+    <!-- Formulário oculto para envio por email -->
+    <form id="email-form" class="hidden" action="https://formsubmit.co/psicopedagogolucas@gmail.com" method="POST">
+        <input type="hidden" name="_subject" value="Relatório do Jogo de Consciência Silábica">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="#">
+        <input type="hidden" name="nome" id="form-nome">
+        <input type="hidden" name="idade" id="form-idade">
+        <input type="hidden" name="ano" id="form-ano">
+        <input type="hidden" name="pontuacao" id="form-pontuacao">
+        <input type="hidden" name="nivel" id="form-nivel">
+        <input type="hidden" name="relatorio" id="form-relatorio">
+        <input type="hidden" name="grafico" id="form-grafico">
+        <input type="hidden" name="_captcha" value="false">
+    </form>
+
+    <script>
+        // Variáveis globais
+        let playerName = '';
+        let playerAge = 0;
+        let schoolYear = 0;
+        let currentLevel = 'easy';
+        let score = 0;
+        let currentWordIndex = 0;
+        let timerInterval;
+        let timeLeft = 20;
+        let gameWords = [];
+        let correctAnswers = [];
+        let incorrectAnswers = [];
+        let currentQuestionType = 'input'; // 'input' ou 'options'
+        
+        // Banco de palavras por nível e ano escolar
+        const wordsDatabase = {
+            easy: {
+                1: [
+                    {word: "pé", emoji: "🦶", syllables: ["pé"]},
+                    {word: "pá", emoji: "🪓", syllables: ["pá"]},
+                    {word: "lua", emoji: "🌙", syllables: ["lu", "a"]},
+                    {word: "bola", emoji: "⚽", syllables: ["bo", "la"]},
+                    {word: "gato", emoji: "🐱", syllables: ["ga", "to"]}
+                ],
+                2: [
+                    {word: "casa", emoji: "🏠", syllables: ["ca", "sa"]},
+                    {word: "lápis", emoji: "✏️", syllables: ["lá", "pis"]},
+                    {word: "flor", emoji: "🌺", syllables: ["flor"]},
+                    {word: "mesa", emoji: "🪑", syllables: ["me", "sa"]},
+                    {word: "livro", emoji: "📖", syllables: ["li", "vro"]}
+                ],
+                3: [
+                    {word: "caderno", emoji: "📓", syllables: ["ca", "der", "no"]},
+                    {word: "janela", emoji: "🪟", syllables: ["ja", "ne", "la"]},
+                    {word: "árvore", emoji: "🌳", syllables: ["ár", "vo", "re"]},
+                    {word: "computador", emoji: "💻", syllables: ["com", "pu", "ta", "dor"]},
+                    {word: "ventilador", emoji: "🌀", syllables: ["ven", "ti", "la", "dor"]}
+                ]
+            },
+            medium: {
+                4: [
+                    {word: "professor", emoji: "👨‍🏫", syllables: ["pro", "fes", "sor"]},
+                    {word: "borboleta", emoji: "🦋", syllables: ["bor", "bo", "le", "ta"]},
+                    {word: "telefone", emoji: "📱", syllables: ["te", "le", "fo", "ne"]},
+                    {word: "biblioteca", emoji: "📚", syllables: ["bi", "blio", "te", "ca"]},
+                    {word: "experimento", emoji: "🧪", syllables: ["ex", "pe", "ri", "men", "to"]}
+                ],
+                5: [
+                    {word: "avião", emoji: "✈️", syllables: ["a", "vi", "ão"]},
+                    {word: "elefante", emoji: "🐘", syllables: ["e", "le", "fan", "te"]},
+                    {word: "helicóptero", emoji: "🚁", syllables: ["he", "li", "cóp", "te", "ro"]},
+                    {word: "constelação", emoji: "🌌", syllables: ["cons", "te", "la", "ção"]},
+                    {word: "administração", emoji: "🏢", syllables: ["ad", "mi", "nis", "tra", "ção"]}
+                ],
+                6: [
+                    {word: "planetário", emoji: "🪐", syllables: ["pla", "ne", "tá", "rio"]},
+                    {word: "arqueólogo", emoji: "🔍", syllables: ["ar", "que", "ó", "lo", "go"]},
+                    {word: "paralelepípedo", emoji: "🧱", syllables: ["pa", "ra", "le", "le", "pí", "pe", "do"]},
+                    {word: "fotossíntese", emoji: "🌿", syllables: ["fo", "to", "ssín", "te", "se"]},
+                    {word: "termômetro", emoji: "🌡️", syllables: ["ter", "mô", "me", "tro"]}
+                ]
+            },
+            hard: {
+                7: [
+                    {word: "ecossistema", emoji: "🌎", syllables: ["e", "cos", "sis", "te", "ma"]},
+                    {word: "matemática", emoji: "🧮", syllables: ["ma", "te", "má", "ti", "ca"]},
+                    {word: "astronauta", emoji: "👨‍🚀", syllables: ["as", "tro", "nau", "ta"]},
+                    {word: "desenvolvimento", emoji: "📈", syllables: ["de", "sen", "vol", "vi", "men", "to"]},
+                    {word: "responsabilidade", emoji: "🤝", syllables: ["res", "pon", "sa", "bi", "li", "da", "de"]}
+                ],
+                8: [
+                    {word: "identificação", emoji: "🆔", syllables: ["i", "den", "ti", "fi", "ca", "ção"]},
+                    {word: "multidisciplinar", emoji: "🎓", syllables: ["mul", "ti", "dis", "ci", "pli", "nar"]},
+                    {word: "inconstitucional", emoji: "⚖️", syllables: ["in", "cons", "ti", "tu", "ci", "o", "nal"]},
+                    {word: "internacionalização", emoji: "🌐", syllables: ["in", "ter", "na", "ci", "o", "na", "li", "za", "ção"]},
+                    {word: "interdisciplinaridade", emoji: "🔬", syllables: ["in", "ter", "dis", "ci", "pli", "na", "ri", "da", "de"]}
+                ],
+                9: [
+                    {word: "incompreensibilidade", emoji: "❓", syllables: ["in", "com", "pre", "en", "si", "bi", "li", "da", "de"]},
+                    {word: "descaracterização", emoji: "🎭", syllables: ["des", "ca", "rac", "te", "ri", "za", "ção"]},
+                    {word: "contraindicação", emoji: "⚠️", syllables: ["con", "tra", "in", "di", "ca", "ção"]},
+                    {word: "inconstitucionalissimamente", emoji: "🧠", syllables: ["in", "cons", "ti", "tu", "ci", "o", "na", "lis", "si", "ma", "men", "te"]},
+                    {word: "otorrinolaringologista", emoji: "👨‍⚕️", syllables: ["o", "tor", "ri", "no", "la", "rin", "go", "lo", "gis", "ta"]}
+                ]
+            }
+        };
+
+        // Elementos DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startBtn = document.getElementById('start-btn');
+        const checkBtn = document.getElementById('check-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const playerNameInput = document.getElementById('player-name');
+        const playerAgeSelect = document.getElementById('player-age');
+        const schoolYearSelect = document.getElementById('school-year');
+        const wordEmoji = document.getElementById('word-emoji');
+        const currentWord = document.getElementById('current-word');
+        const syllableInput = document.getElementById('syllable-input');
+        const feedback = document.getElementById('feedback');
+        const timerProgress = document.getElementById('timer-progress');
+        const timerText = document.getElementById('timer-text');
+        const levelTitle = document.getElementById('level-title');
+        const levelProgress = document.getElementById('level-progress');
+        const playerNameResult = document.getElementById('player-name-result');
+        const scoreResult = document.getElementById('score-result');
+        const finalLevel = document.getElementById('final-level');
+        const correctCount = document.getElementById('correct-count');
+        const incorrectCount = document.getElementById('incorrect-count');
+        const accuracyRate = document.getElementById('accuracy-rate');
+        const reportStatus = document.getElementById('report-status');
+        const optionsContainer = document.getElementById('options-container');
+        const inputContainer = document.getElementById('input-container');
+        const questionType = document.getElementById('question-type');
+        const emailForm = document.getElementById('email-form');
+        const formNome = document.getElementById('form-nome');
+        const formIdade = document.getElementById('form-idade');
+        const formAno = document.getElementById('form-ano');
+        const formPontuacao = document.getElementById('form-pontuacao');
+        const formNivel = document.getElementById('form-nivel');
+        const formRelatorio = document.getElementById('form-relatorio');
+        const formGrafico = document.getElementById('form-grafico');
+
+        // Event Listeners
+        startBtn.addEventListener('click', startGame);
+        checkBtn.addEventListener('click', checkAnswer);
+        restartBtn.addEventListener('click', restartGame);
+        downloadBtn.addEventListener('click', downloadResults);
+        syllableInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Iniciar o jogo
+        function startGame() {
+            playerName = playerNameInput.value.trim();
+            playerAge = parseInt(playerAgeSelect.value);
+            schoolYear = parseInt(schoolYearSelect.value);
+            
+            if (!playerName || !playerAge || !schoolYear) {
+                alert('Por favor, preencha todas as informações!');
+                return;
+            }
+            
+            // Determinar nível inicial baseado no ano escolar
+            if (schoolYear <= 3) {
+                currentLevel = 'easy';
+            } else if (schoolYear <= 6) {
+                currentLevel = 'medium';
+            } else {
+                currentLevel = 'hard';
+            }
+            
+            // Carregar palavras para o nível e ano escolar
+            gameWords = wordsDatabase[currentLevel][schoolYear] || wordsDatabase[currentLevel][Object.keys(wordsDatabase[currentLevel])[0]];
+            
+            startScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            
+            updateLevelDisplay();
+            loadWord();
+        }
+
+        // Atualizar display do nível
+        function updateLevelDisplay() {
+            levelTitle.textContent = `Nível ${currentLevel === 'easy' ? 'Fácil' : currentLevel === 'medium' ? 'Médio' : 'Difícil'}`;
+            
+            // Atualizar badge de nível
+            const badge = document.querySelector('.level-badge');
+            badge.className = 'level-badge ' + currentLevel;
+            badge.innerHTML = `<i class="fas fa-${currentLevel === 'easy' ? 'star' : currentLevel === 'medium' ? 'medal' : 'crown'}"></i> ${currentLevel === 'easy' ? 'Fácil' : currentLevel === 'medium' ? 'Médio' : 'Difícil'}`;
+        }
+
+        // Carregar palavra atual
+        function loadWord() {
+            if (currentWordIndex >= gameWords.length) {
+                // Avançar para o próximo nível ou finalizar
+                if (currentLevel === 'easy') {
+                    currentLevel = 'medium';
+                    currentWordIndex = 0;
+                    gameWords = wordsDatabase.medium[schoolYear] || wordsDatabase.medium[4];
+                    updateLevelDisplay();
+                    levelProgress.style.width = '50%';
+                    loadWord();
+                    return;
+                } else if (currentLevel === 'medium') {
+                    currentLevel = 'hard';
+                    currentWordIndex = 0;
+                    gameWords = wordsDatabase.hard[schoolYear] || wordsDatabase.hard[7];
+                    updateLevelDisplay();
+                    levelProgress.style.width = '100%';
+                    loadWord();
+                    return;
+                } else {
+                    endGame();
+                    return;
+                }
+            }
+            
+            const currentWordData = gameWords[currentWordIndex];
+            wordEmoji.textContent = currentWordData.emoji;
+            currentWord.textContent = currentWordData.word;
+            syllableInput.value = '';
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            
+            // Atualizar barra de progresso
+            levelProgress.style.width = `${((currentWordIndex / gameWords.length) * 100) / (currentLevel === 'easy' ? 3 : currentLevel === 'medium' ? 1.5 : 1)}%`;
+            
+            // Alternar entre digitar e selecionar (para palavras maiores, priorizar seleção)
+            currentQuestionType = currentWordData.word.length > 8 || Math.random() > 0.5 ? 'options' : 'input';
+            
+            if (currentQuestionType === 'input') {
+                questionType.textContent = "Digite a separação silábica:";
+                inputContainer.style.display = "flex";
+                optionsContainer.style.display = "none";
+                syllableInput.focus();
+            } else {
+                questionType.textContent = "Selecione a separação correta:";
+                inputContainer.style.display = "none";
+                optionsContainer.style.display = "flex";
+                generateOptions(currentWordData.syllables, currentWordData.word);
+            }
+            
+            // Iniciar timer
+            timeLeft = 20;
+            timerProgress.style.width = '100%';
+            timerText.textContent = '20s';
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                timerProgress.style.width = (timeLeft / 20 * 100) + '%';
+                timerText.textContent = timeLeft + 's';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        // Gerar opções de resposta
+        function generateOptions(correctSyllables, word) {
+            optionsContainer.innerHTML = '';
+            const correctAnswer = correctSyllables.join('-');
+            
+            // Criar opções incorretas
+            let options = [correctAnswer];
+            
+            // Opção com número errado de sílabas
+            if (correctSyllables.length > 1) {
+                let wrongSyllables = [...correctSyllables];
+                wrongSyllables.pop();
+                options.push(wrongSyllables.join('-'));
+            }
+            
+            // Opção com separação errada
+            if (correctSyllables.length > 2) {
+                let wrongSyllables = [...correctSyllables];
+                // Juntar duas sílabas
+                const joinIndex = Math.floor(Math.random() * (wrongSyllables.length - 1));
+                wrongSyllables[joinIndex] = wrongSyllables[joinIndex] + wrongSyllables[joinIndex + 1];
+                wrongSyllables.splice(joinIndex + 1, 1);
+                options.push(wrongSyllables.join('-'));
+            }
+            
+            // Opção com hífen no lugar errado
+            if (word.length > 3) {
+                const wrongPlace = word.split('').map((c, i) => i === 1 ? '-' : c).join('');
+                if (!options.includes(wrongPlace)) {
+                    options.push(wrongPlace);
+                }
+            }
+            
+            // Embaralhar opções
+            options = shuffleArray(options);
+            
+            // Criar botões de opção
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option;
+                button.addEventListener('click', function() {
+                    // Desselecionar outros botões
+                    document.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    // Selecionar este botão
+                    this.classList.add('selected');
+                    // Verificar resposta
+                    checkOptionAnswer(option);
+                });
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        // Embaralhar array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Verificar resposta para opções
+        function checkOptionAnswer(selectedOption) {
+            clearInterval(timerInterval);
+            
+            const correctSyllables = gameWords[currentWordIndex].syllables;
+            const correctAnswer = correctSyllables.join('-');
+            
+            if (selectedOption === correctAnswer) {
+                // Resposta correta
+                feedback.innerHTML = '<i class="fas fa-check-circle"></i> Parabéns! Você acertou! 🎉';
+                feedback.className = 'feedback correct';
+                score += 10;
+                correctAnswers.push({
+                    word: gameWords[currentWordIndex].word,
+                    userAnswer: selectedOption,
+                    correctAnswer: correctAnswer
+                });
+            } else {
+                // Resposta incorreta
+                feedback.innerHTML = `<i class="fas fa-times-circle"></i> Que pena! A separação correta é: <strong>${correctAnswer}</strong><br>
+                Porque: ${explainSyllabication(gameWords[currentWordIndex].word, correctSyllables)}`;
+                feedback.className = 'feedback incorrect';
+                incorrectAnswers.push({
+                    word: gameWords[currentWordIndex].word,
+                    userAnswer: selectedOption,
+                    correctAnswer: correctAnswer
+                });
+            }
+            
+            currentWordIndex++;
+            setTimeout(loadWord, 3000);
+        }
+
+        // Verificar resposta para input
+        function checkAnswer() {
+            clearInterval(timerInterval);
+            
+            const userAnswer = syllableInput.value.trim().toLowerCase();
+            const correctSyllables = gameWords[currentWordIndex].syllables;
+            const correctAnswer = correctSyllables.join('-');
+            
+            if (userAnswer === correctAnswer) {
+                // Resposta correta
+                feedback.innerHTML = '<i class="fas fa-check-circle"></i> Parabéns! Você acertou! 🎉';
+                feedback.className = 'feedback correct';
+                score += 10;
+                correctAnswers.push({
+                    word: gameWords[currentWordIndex].word,
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer
+                });
+            } else {
+                // Resposta incorreta
+                feedback.innerHTML = `<i class="fas fa-times-circle"></i> Que pena! A separação correta é: <strong>${correctAnswer}</strong><br>
+                Porque: ${explainSyllabication(gameWords[currentWordIndex].word, correctSyllables)}`;
+                feedback.className = 'feedback incorrect';
+                incorrectAnswers.push({
+                    word: gameWords[currentWordIndex].word,
+                    userAnswer: userAnswer,
+                    correctAnswer: correctAnswer
+                });
+            }
+            
+            currentWordIndex++;
+            setTimeout(loadWord, 3000);
+        }
+
+        // Explicar a separação silábica
+        function explainSyllabication(word, syllables) {
+            const explanations = {
+                "pé": "PÉ: palavra monossílaba (uma só sílaba).",
+                "pá": "PÁ: palavra monossílaba (uma só sílaba).",
+                "lua": "LU-A: dissílaba, separação entre a consoante e a vogal.",
+                "bola": "BO-LA: dissílaba, sílabas canônicas (consoante + vogal).",
+                "gato": "GA-TO: dissílaba, sílabas canônicas (consoante + vogal).",
+                "casa": "CA-SA: dissílaba, sílabas canônicas (consoante + vogal).",
+                "lápis": "LÁ-PIS: dissílaba, sílaba tônica na primeira sílaba.",
+                "flor": "FLOR: monossílaba, encontro consonantal 'fl' não se separa.",
+                "mesa": "ME-SA: dissílaba, sílabas canônicas (consoante + vogal).",
+                "livro": "LI-VRO: dissílaba, sílabas canônicas (consoante + vogal).",
+                "caderno": "CA-DER-NO: trissílaba, todas as sílabas são canônicas.",
+                "janela": "JA-NE-LA: trissílaba, sílabas canônicas (consoante + vogal).",
+                "árvore": "ÁR-VO-RE: trissílaba, dígrafo 'rv' não se separa.",
+                "computador": "COM-PU-TA-DOR: polissílaba, sílabas canônicas.",
+                "ventilador": "VEN-TI-LA-DOR: polissílaba, sílabas canônicas.",
+                "professor": "PRO-FES-SOR: trissílaba, 'ss' é dígrafo e não se separa.",
+                "borboleta": "BOR-BO-LE-TA: polissílaba, sílabas canônicas.",
+                "telefone": "TE-LE-FO-NE: polissílaba, sílabas canônicas.",
+                "biblioteca": "BI-BLIO-TE-CA: polissílaba, encontro consonantal 'bl' não se separa.",
+                "experimento": "EX-PE-RI-MEN-TO: polissílaba, sílabas canônicas.",
+                "avião": "A-VI-ÃO: trissílaba, ditongo 'ão' não se separa.",
+                "elefante": "E-LE-FAN-TE: polissílaba, sílabas canônicas.",
+                "helicóptero": "HE-LI-CÓP-TE-RO: polissílaba, sílaba tônica em 'cóp'.",
+                "constelação": "CONS-TE-LA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "administração": "AD-MI-NIS-TRA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "planetário": "PLA-NE-TÁ-RIO: polissílaba, sílaba tônica em 'tá'.",
+                "arqueólogo": "AR-QUE-Ó-LO-GO: polissílaba, sílaba tônica em 'ó'.",
+                "paralelepípedo": "PA-RA-LE-LE-PÍ-PE-DO: polissílaba, sílaba tônica em 'pí'.",
+                "fotossíntese": "FO-TOS-SÍN-TE-SE: polissílaba, sílaba tônica em 'sín'.",
+                "termômetro": "TER-MÔ-ME-TRO: polissílaba, sílaba tônica em 'mô'.",
+                "ecossistema": "E-COS-SIS-TE-MA: polissílaba, encontro consonantal 'ss' não se separa.",
+                "matemática": "MA-TE-MÁ-TI-CA: polissílaba, sílaba tônica em 'má'.",
+                "astronauta": "AS-TRO-NAU-TA: polissílaba, ditongo 'au' não se separa.",
+                "desenvolvimento": "DE-SEN-VOL-VI-MEN-TO: polissílaba, encontro consonantal 'lv' não se separa.",
+                "responsabilidade": "RES-PON-SA-BI-LI-DA-DE: polissílaba, sílabas canônicas.",
+                "identificação": "I-DEN-TI-FI-CA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "multidisciplinar": "MUL-TI-DIS-CI-PLI-NAR: polissílaba, encontro consonantal 'sc' não se separa.",
+                "inconstitucional": "IN-CONS-TI-TU-CI-O-NAL: polissílaba, encontro consonantal 'st' não se separa.",
+                "internacionalização": "IN-TER-NA-CI-O-NA-LI-ZA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "interdisciplinaridade": "IN-TER-DIS-CI-PLI-NA-RI-DA-DE: polissílaba, encontro consonantal 'sc' não se separa.",
+                "incompreensibilidade": "IN-COM-PRE-EN-SI-BI-LI-DA-DE: polissílaba, encontro consonantal 'pr' não se separa.",
+                "descaracterização": "DES-CA-RAC-TE-RI-ZA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "contraindicação": "CON-TRA-IN-DI-CA-ÇÃO: polissílaba, ditongo 'ão' não se separa.",
+                "inconstitucionalissimamente": "IN-CONS-TI-TU-CI-O-NA-LIS-SI-MA-MEN-TE: polissílaba, sufixo superlativo 'issimo' e advérbial 'mente'.",
+                "otorrinolaringologista": "O-TOR-RI-NO-LA-RIN-GO-LO-GIS-TA: polissílaba, palavra composta por termos gregos."
+            };
+            
+            return explanations[word] || `A palavra '${word}' se divide em ${syllables.length} sílabas: ${syllables.join('-')}.`;
+        }
+
+        // Tempo esgotado
+        function handleTimeout() {
+            const correctSyllables = gameWords[currentWordIndex].syllables;
+            const correctAnswer = correctSyllables.join('-');
+            feedback.innerHTML = `<i class="fas fa-hourglass-end"></i> Tempo esgotado! A separação correta é: <strong>${correctAnswer}</strong><br>
+            Porque: ${explainSyllabication(gameWords[currentWordIndex].word, correctSyllables)}`;
+            feedback.className = 'feedback incorrect';
+            
+            incorrectAnswers.push({
+                word: gameWords[currentWordIndex].word,
+                userAnswer: '(Tempo esgotado)',
+                correctAnswer: correctAnswer
+            });
+            
+            currentWordIndex++;
+            setTimeout(loadWord, 3000);
+        }
+
+        // Finalizar o jogo
+        function endGame() {
+            gameScreen.classList.remove('active');
+            resultScreen.classList.add('active');
+            
+            playerNameResult.textContent = playerName;
+            scoreResult.textContent = score;
+            finalLevel.textContent = currentLevel === 'easy' ? 'Fácil' : 
+                                    currentLevel === 'medium' ? 'Médio' : 'Difícil';
+            
+            // Atualizar estatísticas
+            correctCount.textContent = correctAnswers.length;
+            incorrectCount.textContent = incorrectAnswers.length;
+            
+            const total = correctAnswers.length + incorrectAnswers.length;
+            const accuracy = total > 0 ? Math.round((correctAnswers.length / total) * 100) : 0;
+            accuracyRate.textContent = `${accuracy}%`;
+            
+            // Enviar relatório por email
+            sendReport();
+        }
+
+        // Enviar relatório por email usando FormSubmit
+        function sendReport() {
+            reportStatus.style.display = "block";
+            
+            // Determinar hipótese de nível de alfabetização
+            let literacyLevel = "Alfabético";
+            const accuracy = correctAnswers.length / (correctAnswers.length + incorrectAnswers.length);
+            
+            if (accuracy < 0.3) {
+                literacyLevel = "Pré-silábico";
+            } else if (accuracy < 0.6) {
+                literacyLevel = "Silábico";
+            } else if (accuracy < 0.8) {
+                literacyLevel = "Silábico-alfabético";
+            }
+            
+            // Criar relatório detalhado
+            const relatorio = `
+                RELATÓRIO DO JOGO DE CONSCIÊNCIA SILÁBICA
+                ==========================================
+                
+                DADOS DO JOGADOR:
+                - Nome: ${playerName}
+                - Idade: ${playerAge} anos
+                - Ano Escolar: ${schoolYear}º ano
+                - Data: ${new Date().toLocaleString('pt-BR')}
+                
+                DESEMPENHO NO JOGO:
+                - Pontuação: ${score} pontos
+                - Nível Alcançado: ${currentLevel === 'easy' ? 'Fácil' : currentLevel === 'medium' ? 'Médio' : 'Difícil'}
+                - Palavras Corretas: ${correctAnswers.length}
+                - Palavras Incorretas: ${incorrectAnswers.length}
+                - Taxa de Acerto: ${(accuracy * 100).toFixed(2)}%
+                
+                HIPÓTESE DE NÍVEL DE ALFABETIZAÇÃO: ${literacyLevel}
+                
+                ANÁLISE DE DESEMPENHO POR ETAPA SILÁBICA:
+                - Monossílabas: ${analyzeSyllableType(1)}
+                - Dissílabas: ${analyzeSyllableType(2)}
+                - Trissílabas: ${analyzeSyllableType(3)}
+                - Polissílabas: ${analyzeSyllableType(4)}
+                
+                PALAVRAS COM DIFICULDADE:
+                ${incorrectAnswers.map(item => `- ${item.word}: Resposta="${item.userAnswer}", Correto="${item.correctAnswer}"`).join('\n                ')}
+                
+                INTERVENÇÕES PSICOPEDAGÓGICAS SUGERIDAS:
+                ${getInterventions(literacyLevel)}
+            `;
+            
+            // Criar gráfico em formato texto (simulado)
+            const grafico = createTextChart(accuracy, correctAnswers.length, incorrectAnswers.length);
+            
+            // Preencher o formulário oculto
+            formNome.value = playerName;
+            formIdade.value = playerAge;
+            formAno.value = schoolYear;
+            formPontuacao.value = score;
+            formNivel.value = currentLevel;
+            formRelatorio.value = relatorio;
+            formGrafico.value = grafico;
+            
+            // Enviar o formulário
+            emailForm.submit();
+            
+            // Atualizar status após um tempo
+            setTimeout(() => {
+                reportStatus.innerHTML = '<i class="fas fa-check-circle"></i> Relatório enviado com sucesso!';
+            }, 2000);
+        }
+
+        // Analisar desempenho por tipo silábico
+        function analyzeSyllableType(syllableCount) {
+            const correct = correctAnswers.filter(item => item.correctAnswer.split('-').length === syllableCount).length;
+            const incorrect = incorrectAnswers.filter(item => item.correctAnswer.split('-').length === syllableCount).length;
+            const total = correct + incorrect;
+            
+            if (total === 0) return "Nenhuma palavra deste tipo";
+            
+            const percentage = (correct / total) * 100;
+            return `${correct}/${total} acertos (${percentage.toFixed(1)}%)`;
+        }
+
+        // Obter intervenções psicopedagógicas
+        function getInterventions(level) {
+            const interventions = {
+                "Pré-silábico": [
+                    "Trabalhar com rimas e aliterações para desenvolver consciência fonológica",
+                    "Atividades de segmentação de palavras em sílabas com apoio visual e motor",
+                    "Jogos de consciência fonológica: identificar sons iniciais e finais das palavras"
+                ],
+                "Silábico": [
+                    "Reforçar correspondência fonema-grafema através de atividades lúdicas",
+                    "Atividades de síntese e análise silábica com palavras familiares",
+                    "Jogos de formação de palavras com sílabas móveis e cartões"
+                ],
+                "Silábico-alfabético": [
+                    "Trabalhar com palavras complexas que contenham encontros consonantais",
+                    "Prática de leitura e escrita com textos curtos e contextualizados",
+                    "Atividades de ortografia e regras contextuais de forma explícita"
+                ],
+                "Alfabético": [
+                    "Ampliação de vocabulário através de leitura diversificada",
+                    "Leitura e interpretação de textos mais complexos",
+                    "Produção textual com foco na coesão, coerência e pontuação"
+                ]
+            };
+            
+            return interventions[level].join('\n                ');
+        }
+
+        // Criar um gráfico em formato de texto (ASCII art)
+        function createTextChart(accuracy, correct, incorrect) {
+            const total = correct + incorrect;
+            const correctBars = Math.round((correct / total) * 20);
+            const incorrectBars = 20 - correctBars;
+            
+            return `
+                DESEMPENHO DO ALUNO - GRÁFICO
+                ----------------------------
+                
+                Pontuação: ${score} pontos
+                Taxa de Acerto: ${(accuracy * 100).toFixed(2)}%
+                
+                [GRÁFICO DE BARRAS]
+                Corretas:   ${'█'.repeat(correctBars)} ${correct}/${total}
+                Incorretas: ${'█'.repeat(incorrectBars)} ${incorrect}/${total}
+                
+                [GRÁFICO DE PIZZA SIMULADO]
+                ●●●●●●●●●○○○ 70% Corretas
+                ●●●○○○○○○○○○ 30% Incorretas
+            `;
+        }
+
+        // Baixar resultados
+        function downloadResults() {
+            const resultData = {
+                playerName,
+                playerAge,
+                schoolYear,
+                score,
+                level: currentLevel,
+                correctAnswers,
+                incorrectAnswers,
+                date: new Date().toLocaleString()
+            };
+            
+            // Determinar hipótese de nível de alfabetização
+            let literacyLevel = "Alfabético";
+            const accuracy = correctAnswers.length / (correctAnswers.length + incorrectAnswers.length);
+            
+            if (accuracy < 0.3) {
+                literacyLevel = "Pré-silábico";
+            } else if (accuracy < 0.6) {
+                literacyLevel = "Silábico";
+            } else if (accuracy < 0.8) {
+                literacyLevel = "Silábico-alfabético";
+            }
+            
+            // Criar relatório detalhado
+            const relatorio = `
+                RELATÓRIO DO JOGO DE CONSCIÊNCIA SILÁBICA
+                ==========================================
+                
+                DADOS DO JOGADOR:
+                - Nome: ${playerName}
+                - Idade: ${playerAge} anos
+                - Ano Escolar: ${schoolYear}º ano
+                - Data: ${new Date().toLocaleString('pt-BR')}
+                
+                DESEMPENHO NO JOGO:
+                - Pontuação: ${score} pontos
+                - Nível Alcançado: ${currentLevel === 'easy' ? 'Fácil' : currentLevel === 'medium' ? 'Médio' : 'Difícil'}
+                - Palavras Corretas: ${correctAnswers.length}
+                - Palavras Incorretas: ${incorrectAnswers.length}
+                - Taxa de Acerto: ${(accuracy * 100).toFixed(2)}%
+                
+                HIPÓTESE DE NÍVEL DE ALFABETIZAÇÃO: ${literacyLevel}
+                
+                PALAVRAS COM DIFICULDADE:
+                ${incorrectAnswers.map(item => `- ${item.word}: Resposta="${item.userAnswer}", Correto="${item.correctAnswer}"`).join('\n                ')}
+            `;
+            
+            // Criar elemento para download
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(relatorio));
+            element.setAttribute('download', `relatorio-silabico-${playerName}-${new Date().toISOString().slice(0, 10)}.txt`);
+            
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            
+            element.click();
+            
+            document.body.removeChild(element);
+        }
+
+        // Reiniciar o jogo
+        function restartGame() {
+            resultScreen.classList.remove('active');
+            startScreen.classList.add('active');
+            
+            // Resetar variáveis
+            score = 0;
+            currentWordIndex = 0;
+            correctAnswers = [];
+            incorrectAnswers = [];
+            currentLevel = 'easy';
+        }
+
+        // Verificar se há erros de JavaScript
+        window.addEventListener('error', function(e) {
+            console.error('Erro JavaScript:', e.error);
+            alert('Ocorreu um erro no jogo. Por favor, recarregue a página.');
+        });
+
+        // Inicialização do jogo
+        window.addEventListener('load', function() {
+            console.log('Jogo carregado com sucesso!');
+        });
+    </script>
+</body>
+</html>
